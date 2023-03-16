@@ -62,12 +62,18 @@ MANFILE   = $(PACKAGE).$(MANNUMBER)
 MANPAGE   = doc/man/$(MANFILE)
 
 # Build info
+CC          = $(CROSS_COMPILE)gcc
+CXX         = $(CROSS_COMPILE)g++
 EXE         = $(PACKAGE)
 CDEBUG      = -O2
 CXXFLAGS    = $(CDEBUG) -Wall -Wextra $(CFLAGS_PLATFORM)
 LDFLAGS     = -lncurses $(LDFLAGS_PLATFORM)
 INCLUDESDIR = -I"src/" -I"deps/"
-LIBSDIR     =
+ifdef CROSS_COMPILE
+LIBSDIR     = ~/.$(CROSS_COMPILE)
+else
+LIBSFIR     =
+endif
 
 # Project source files
 CFILES   = $(shell find src -type f -name '*.c')
@@ -115,6 +121,12 @@ else
 CDEBUG =
 endif
 
+ifdef CROSS_COMPILE
+NCURSES_TARGET = ncurses
+else
+NCURSES_TARGET = 
+endif
+
 # Make targets
 all: dirs $(EXE)
 	# Build successful!
@@ -152,7 +164,10 @@ uninstall:
 	$(MUTE)rm -f $(DESTDIR)$(XPMDIR)/nsnake.xpm
 	$(MUTE)rm -f $(DESTDIR)$(DESKTOPDIR)/nsnake.desktop
 
-$(EXE): $(OBJECTS) $(ENGINE_OBJECTS) $(COMMANDER_OBJECTS)
+ncurses:
+	cd ncurses && ./configure --host=arm-linux-gnueabi --prefix=$(HOME)/.$(CROSS_COMPILE) && $(MAKE) && $(MAKE) install
+
+$(EXE): ncurses $(OBJECTS) $(ENGINE_OBJECTS) $(COMMANDER_OBJECTS)
 	# Linking...
 	$(MUTE)$(CXX) $(OBJECTS) $(ENGINE_OBJECTS) $(COMMANDER_OBJECTS) -o bin/$(EXE) $(LIBSDIR) $(LDFLAGS)
 
@@ -209,7 +224,7 @@ docclean:
 	# Removing documentation...
 	-$(MUTE)rm $(VTAG) -rf doc/html
 
-.PHONY: clean clean-all dirs doc docclean uninstall
+.PHONY: clean clean-all dirs doc docclean uninstall ncurses
 
 # Engine stuff
 $(ENGINE_DIR)/%.o: $(ENGINE_DIR)/%.cpp
