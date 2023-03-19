@@ -69,11 +69,6 @@ CDEBUG      = -O2
 CXXFLAGS    = $(CDEBUG) -Wall -Wextra $(CFLAGS_PLATFORM)
 LDFLAGS     = -lncurses $(LDFLAGS_PLATFORM)
 INCLUDESDIR = -I"src/" -I"deps/"
-ifdef CROSS_COMPILE
-LIBSDIR     = ~/.$(CROSS_COMPILE)
-else
-LIBSFIR     =
-endif
 
 # Project source files
 CFILES   = $(shell find src -type f -name '*.c')
@@ -106,7 +101,7 @@ ifdef V
 MUTE =
 VTAG = -v
 else
-MUTE = @
+MUTE = 
 endif
 
 ifdef DESTDIR
@@ -123,6 +118,7 @@ endif
 
 ifdef CROSS_COMPILE
 NCURSES_TARGET = ncurses
+LDFLAGS += -L/home/dvir/armstuff/lib
 else
 NCURSES_TARGET = 
 endif
@@ -165,11 +161,11 @@ uninstall:
 	$(MUTE)rm -f $(DESTDIR)$(DESKTOPDIR)/nsnake.desktop
 
 ncurses:
-	cd ncurses && ./configure --host=arm-linux-gnueabi --prefix=$(HOME)/.$(CROSS_COMPILE) && $(MAKE) && $(MAKE) install
+	cd ncurses && ./configure --host=arm-linux-gnueabi --prefix=$(HOME)/armstuff && $(MAKE) && $(MAKE) install
 
 $(EXE): ncurses $(OBJECTS) $(ENGINE_OBJECTS) $(COMMANDER_OBJECTS)
 	# Linking...
-	$(MUTE)$(CXX) $(OBJECTS) $(ENGINE_OBJECTS) $(COMMANDER_OBJECTS) -o bin/$(EXE) $(LIBSDIR) $(LDFLAGS)
+	$(CXX) $(OBJECTS) $(ENGINE_OBJECTS) $(COMMANDER_OBJECTS) -o bin/$(EXE) $(LIBSDIR) $(LDFLAGS)
 
 src/%.o: src/%.cpp
 	# Compiling $<...
